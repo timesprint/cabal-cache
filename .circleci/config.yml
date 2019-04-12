@@ -26,9 +26,9 @@ workflows:
                 name: Prepare environment for release
                 command: |
                   tar zcvf /tmp/artefacts/${CIRCLE_PROJECT_REPONAME}_${BUILD_ARCH}_${BUILD_OS_NAME}.tar.gz -C ./build/dist/ ./${BUILD_EXE_NAME}
-          filters:
-            branches:
-              only: master
+          # filters:
+          #   branches:
+          #     only: master
 
       # - hackage/upload:
       #     context: haskell-ci
