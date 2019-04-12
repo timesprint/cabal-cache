@@ -100,9 +100,10 @@ executable hw-ci-assist
   build-depends:        hw-ci-assist
   main-is:              Main.hs
   hs-source-dirs:       app
-  ghc-options:          -static
-  cc-options: -static
-  ld-options: -static -pthread
+  if os(linux)
+    ghc-options:          -static
+    cc-options:           -static
+    ld-options:           -static -pthread
 
 test-suite hw-ci-assist-test
   import:   base, config
