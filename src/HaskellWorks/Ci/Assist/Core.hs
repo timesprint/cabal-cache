@@ -28,7 +28,8 @@ import System.FilePath           ((<.>), (</>))
 
 import qualified Data.ByteString.Lazy         as LBS
 import qualified Data.List                    as List
-import qualified Data.Text                    as T
+import qualified Data.Text                    as Text
+import qualified HaskellWorks.Ci.Assist.Text  as Text
 import qualified HaskellWorks.Ci.Assist.Types as Z
 import qualified System.Directory             as IO
 
@@ -46,11 +47,12 @@ data Tagged a t = Tagged
   } deriving (Eq, Show, Generic, NFData)
 
 data PackageInfo = PackageInfo
-  { compilerId :: CompilerId
-  , packageId  :: PackageId
-  , packageDir :: PackageDir
-  , confPath   :: Tagged ConfPath Presence
-  , libs       :: [Library]
+  { compilerId     :: CompilerId
+  , packageId      :: PackageId
+  , shortPackageId :: PackageId
+  , packageDir     :: PackageDir
+  , confPath       :: Tagged ConfPath Presence
+  , libs           :: [Library]
   } deriving (Show, Eq, Generic, NFData)
 
 relativePaths :: PackageInfo -> [FilePath]
@@ -76,23 +78,30 @@ loadPlan =
 mkPackageInfo :: FilePath -> CompilerId -> Z.Package -> IO PackageInfo
 mkPackageInfo basePath cid pkg = do
   let pid               = pkg ^. the @"id"
-  let compilerPath      = basePath </> T.unpack cid
-  let relativeConfPath  = T.unpack cid </> "package.db" </> T.unpack pid <.> ".conf"
+  let compilerPath      = basePath </> Text.unpack cid
+  let relativeConfPath  = Text.unpack cid </> "package.db" </> Text.unpack pid <.> ".conf"
   let absoluteConfPath  = basePath </> relativeConfPath
   let libPath           = compilerPath </> "lib"
-  let relativeLibPath   = T.unpack cid </> "lib"
+  let relativeLibPath   = Text.unpack cid </> "lib"
   let libPrefix         = "libHS" <> pid
   absoluteConfPathExists <- IO.doesFileExist absoluteConfPath
   libPathExists <- IO.doesDirectoryExist libPath
   libFiles <- getLibFiles relativeLibPath libPath libPrefix
   return PackageInfo
-    { compilerId  = cid
-    , packageId   = pid
-    , packageDir  = T.unpack cid </> T.unpack pid
-    , confPath    = Tagged relativeConfPath (bool Absent Present absoluteConfPathExists)
-    , libs        = libFiles
+    { compilerId      = cid
+    , packageId       = pid
+    , shortPackageId  = shortenId pid
+    , packageDir      = Text.unpack cid </> Text.unpack pid
+    , confPath        = Tagged relativeConfPath (bool Absent Present absoluteConfPathExists)
+    , libs            = libFiles
     }
 
 getLibFiles :: FilePath -> FilePath -> Text -> IO [Library]
 getLibFiles relativeLibPath libPath libPrefix =
-  fmap (relativeLibPath </>) . filter (List.isPrefixOf (T.unpack libPrefix)) <$> IO.listDirectory libPath
+  fmap (relativeLibPath </>) . filter (List.isPrefixOf (Text.unpack libPrefix)) <$> IO.listDirectory libPath
+
+shortenId :: PackageId -> PackageId
+shortenId pid =
+  case Text.findLastIndex '-' pid of
+    Nothing  -> pid
+    Just idx -> Text.take (idx + 5) pid
