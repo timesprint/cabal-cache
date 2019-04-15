@@ -11,16 +11,18 @@ import Antiope.Core                         (runResAws, toText)
 import Antiope.Env                          (LogLevel, mkEnv)
 import App.Commands.Options.Parser          (optsSyncFromArchive)
 import App.Static                           (homeDirectory)
+import Codec.Archive.Tar                    (mapEntriesNoFail)
 import Control.Lens                         hiding ((<.>))
 import Control.Monad                        (unless, when)
 import Control.Monad.IO.Class               (liftIO)
 import Control.Monad.Trans.Resource         (runResourceT)
 import Data.Generics.Product.Any            (the)
+import Data.Maybe                           (fromMaybe)
 import Data.Semigroup                       ((<>))
 import HaskellWorks.Ci.Assist.Core          (PackageInfo (..), Presence (..), Tagged (..), getPackages, loadPlan)
 import HaskellWorks.Ci.Assist.Location      ((<.>), (</>))
 import HaskellWorks.Ci.Assist.PackageConfig (unTemplateConfig)
-import HaskellWorks.Ci.Assist.Tar           (mapEntriesWith)
+import HaskellWorks.Ci.Assist.Tar           (mapEntriesWith, rewritePath)
 import Network.AWS.Types                    (Region (Oregon))
 import Options.Applicative                  hiding (columns)
 import System.Directory                     (createDirectoryIfMissing, doesDirectoryExist)
@@ -28,7 +30,7 @@ import System.Directory                     (createDirectoryIfMissing, doesDirec
 import qualified App.Commands.Options.Types        as Z
 import qualified Codec.Archive.Tar                 as F
 import qualified Codec.Compression.GZip            as F
-import qualified Data.Text                         as T
+import qualified Data.Text                         as Text
 import qualified HaskellWorks.Ci.Assist.GhcPkg     as GhcPkg
 import qualified HaskellWorks.Ci.Assist.IO.Console as CIO
 import qualified HaskellWorks.Ci.Assist.IO.Lazy    as IO
@@ -52,7 +54,7 @@ runSyncFromArchive opts = do
       env <- mkEnv (opts ^. the @"region") (\_ _ -> pure ())
       let archivePath                 = archiveUri </> (planJson ^. the @"compilerId")
       let baseDir                     = opts ^. the @"storePath"
-      let storeCompilerPath           = baseDir </> (planJson ^. the @"compilerId" . to T.unpack)
+      let storeCompilerPath           = baseDir </> (planJson ^. the @"compilerId" . to Text.unpack)
       let storeCompilerPackageDbPath  = storeCompilerPath </> "package.db"
       let storeCompilerLibPath        = storeCompilerPath </> "lib"
 
@@ -70,7 +72,7 @@ runSyncFromArchive opts = do
       packages <- getPackages baseDir planJson
 
       IO.pooledForConcurrentlyN_ (opts ^. the @"threads") packages $ \pInfo -> do
-        let archiveFile = archiveUri </> T.pack (packageDir pInfo) <.> ".tar.gz"
+        let archiveFile = archiveUri </> Text.pack (packageDir pInfo) <.> ".tar.gz"
         let packageStorePath = baseDir </> packageDir pInfo
         storeDirectoryExists <- doesDirectoryExist packageStorePath
         arhiveFileExists <- runResourceT $ IO.resourceExists env archiveFile
@@ -80,11 +82,12 @@ runSyncFromArchive opts = do
             case maybeArchiveFileContents of
               Just archiveFileContents -> do
                 CIO.putStrLn $ "Extracting " <> toText archiveFile
-                let entries = F.read (F.decompress archiveFileContents)
-                let entries' = case confPath pInfo of
-                                Tagged conf _ -> mapEntriesWith (== conf) (unTemplateConfig baseDir) entries
 
-                liftIO $ F.unpack baseDir entries'
+                let entries = F.read (F.decompress archiveFileContents)
+                                & mapEntriesNoFail (rewritePath (Text.unpack . Text.replace (shortPackageId pInfo) (packageId pInfo) . Text.pack))
+                                & mapEntriesWith (== (confPath pInfo ^. the @"value")) (unTemplateConfig baseDir)
+
+                liftIO $ F.unpack baseDir entries
               Nothing -> do
                 CIO.putStrLn $ "Archive unavilable: " <> toText archiveFile
 
@@ -92,7 +95,7 @@ runSyncFromArchive opts = do
       GhcPkg.recache storeCompilerPackageDbPath
 
     Left errorMessage -> do
-      CIO.hPutStrLn IO.stderr $ "ERROR: Unable to parse plan.json file: " <> T.pack errorMessage
+      CIO.hPutStrLn IO.stderr $ "ERROR: Unable to parse plan.json file: " <> Text.pack errorMessage
 
   return ()
 

@@ -20,14 +20,14 @@ import HaskellWorks.Ci.Assist.Core          (PackageInfo (..), Presence (..), Ta
 import HaskellWorks.Ci.Assist.Location      ((<.>), (</>))
 import HaskellWorks.Ci.Assist.PackageConfig (templateConfig)
 import HaskellWorks.Ci.Assist.Show
-import HaskellWorks.Ci.Assist.Tar           (updateEntryWith)
+import HaskellWorks.Ci.Assist.Tar           (rewritePath, updateEntryWith)
 import Options.Applicative                  hiding (columns)
 import System.Directory                     (createDirectoryIfMissing, doesDirectoryExist)
 
 import qualified App.Commands.Options.Types        as Z
 import qualified Codec.Archive.Tar                 as F
 import qualified Codec.Compression.GZip            as F
-import qualified Data.Text                         as T
+import qualified Data.Text                         as Text
 import qualified HaskellWorks.Ci.Assist.GhcPkg     as GhcPkg
 import qualified HaskellWorks.Ci.Assist.IO.Console as CIO
 import qualified HaskellWorks.Ci.Assist.IO.Lazy    as IO
@@ -52,7 +52,7 @@ runSyncToArchive opts = do
 
       packages <- getPackages baseDir planJson
 
-      let storeCompilerPath           = baseDir </> (planJson ^. the @"compilerId" . to T.unpack)
+      let storeCompilerPath           = baseDir </> (planJson ^. the @"compilerId" . to Text.unpack)
       let storeCompilerPackageDbPath  = storeCompilerPath </> "package.db"
 
       storeCompilerPackageDbPathExists <- doesDirectoryExist storeCompilerPackageDbPath
@@ -63,7 +63,7 @@ runSyncToArchive opts = do
       CIO.putStrLn $ "Syncing " <> tshow (length packages) <> " packages"
 
       IO.pooledForConcurrentlyN_ (opts ^. the @"threads") packages $ \pInfo -> do
-        let archiveFile = archiveUri </> T.pack (packageDir pInfo) <.> ".tar.gz"
+        let archiveFile = archiveUri </> Text.pack (packageDir pInfo) <.> ".tar.gz"
         let packageStorePath = baseDir </> packageDir pInfo
         packageStorePathExists <- doesDirectoryExist packageStorePath
         archiveFileExists <- runResourceT $ IO.resourceExists envAws archiveFile
@@ -76,10 +76,12 @@ runSyncToArchive opts = do
                           Tagged conf Present -> updateEntryWith (== conf) (templateConfig baseDir) <$> entries
                           _                   -> entries
 
-          IO.writeResource envAws archiveFile . F.compress . F.write $ entries'
+          let entries'' = entries' <&> rewritePath (Text.unpack . Text.replace (packageId pInfo) (shortPackageId pInfo) . Text.pack)
+
+          IO.writeResource envAws archiveFile . F.compress . F.write $ entries''
 
     Left errorMessage -> do
-      CIO.hPutStrLn IO.stderr $ "ERROR: Unable to parse plan.json file: " <> T.pack errorMessage
+      CIO.hPutStrLn IO.stderr $ "ERROR: Unable to parse plan.json file: " <> Text.pack errorMessage
 
   return ()
 
