@@ -1,4 +1,7 @@
 module HaskellWorks.Ci.Assist.Tar
+( packWith
+, unpackWith
+)
 where
 
 import Codec.Archive.Tar       as Tar
@@ -8,52 +11,20 @@ import Control.Exception     (Exception, catch, throwIO)
 import Control.Lens          ((&), (<&>))
 import Control.Monad         (forM_)
 import Data.Either           (fromRight)
-import Data.HashMap.Strict   (HashMap)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime, utcTimeToPOSIXSeconds)
 import System.Directory      (copyFile, createDirectoryIfMissing, doesDirectoryExist, setModificationTime)
 import System.FilePath       ((</>))
 import System.IO.Error       (isPermissionError)
 import System.IO.Unsafe      (unsafeInterleaveIO)
 
-import qualified Codec.Archive.Tar.Check    as Tar
 import qualified Data.ByteString.Char8      as BS.Char8
 import qualified Data.ByteString.Lazy       as LBS
 import qualified Data.ByteString.Lazy.Char8 as LC8
-import qualified Data.HashMap.Strict        as HashMap
 import qualified Data.List                  as List
 import qualified System.FilePath            as FilePath.Native
 
 metaTarPath :: TarPath
 metaTarPath = either error id (toTarPath False "METADATA.INFO")
-
-updateEntryWith :: (FilePath -> Bool)
-  -> (LBS.ByteString -> LBS.ByteString)
-  -> Entry
-  -> Entry
-updateEntryWith pred transform entry =
-  if pred (entryPath entry)
-    then case entryContent entry of
-        NormalFile bs size ->
-          let bs' = transform bs
-          in entry { entryContent = NormalFile bs' (LBS.length bs') }
-        _ -> entry
-    else entry
-
-mapEntriesWith :: (FilePath -> Bool)
-  -> (LBS.ByteString -> LBS.ByteString)
-  -> Entries e
-  -> Entries e
-mapEntriesWith pred transform =
-  mapEntriesNoFail (updateEntryWith pred transform)
-
-rewritePath :: (FilePath -> FilePath) -> Entry -> Entry
-rewritePath transform entry =
-  let
-    tp = entryTarPath entry
-    isDir = entryContent entry == Directory
-    fp = fromTarPath tp
-    tp' = fromRight tp (toTarPath isDir (transform fp))
-  in entry { entryTarPath = tp' }
 
 packWith :: (FilePath -> LBS.ByteString -> LBS.ByteString) -- ^ Transform file content
   -> FilePath     -- ^ Base directory

@@ -20,7 +20,7 @@ import HaskellWorks.Ci.Assist.Core          (PackageInfo (..), Presence (..), Ta
 import HaskellWorks.Ci.Assist.Location      ((<.>), (</>))
 import HaskellWorks.Ci.Assist.PackageConfig (templateConfig)
 import HaskellWorks.Ci.Assist.Show
-import HaskellWorks.Ci.Assist.Tar           (packWith, rewritePath, updateEntryWith)
+import HaskellWorks.Ci.Assist.Tar           (packWith)
 import Options.Applicative                  hiding (columns)
 import System.Directory                     (createDirectoryIfMissing, doesDirectoryExist)
 
