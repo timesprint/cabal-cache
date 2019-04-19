@@ -5,16 +5,38 @@ where
 
 import Data.ByteString.Char8       (pack)
 import Data.ByteString.Lazy.Search (replace)
+import HaskellWorks.Ci.Assist.Core
 import HaskellWorks.Ci.Assist.Tar
 
 import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as LBS
 
+
+import Debug.Trace
+
 storePathMacro :: BS.ByteString
 storePathMacro = "${STORE_PATH}"
 
-templateConfig :: FilePath -> LBS.ByteString -> LBS.ByteString
-templateConfig storePath = replace (pack storePath) storePathMacro
+-- templateConfig :: FilePath -> LBS.ByteString -> LBS.ByteString
+-- templateConfig storePath = replace (pack storePath) storePathMacro
 
-unTemplateConfig :: FilePath -> LBS.ByteString -> LBS.ByteString
-unTemplateConfig storePath = replace storePathMacro (pack storePath)
+templateConfig :: PackageInfo
+  -> FilePath       -- ^ base store path
+  -> FilePath       -- ^ tar entry path
+  -> LBS.ByteString -- ^ file content
+  -> LBS.ByteString
+templateConfig pkg storePath entryPath bs =
+  case confPath pkg of
+    Tagged conf Present | conf == entryPath -> replace (pack storePath) storePathMacro bs
+    _                                       -> bs
+
+unTemplateConfig :: PackageInfo
+  -> FilePath       -- ^ base store path
+  -> FilePath       -- ^ tar entry path
+  -> LBS.ByteString -- ^ file content
+  -> LBS.ByteString
+unTemplateConfig pkg storePath entryPath bs =
+  case confPath pkg of
+    Tagged conf _ | conf == traceShowId entryPath -> replace storePathMacro (pack storePath) bs
+    _                                             -> bs
+

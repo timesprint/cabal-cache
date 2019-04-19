@@ -20,7 +20,7 @@ import HaskellWorks.Ci.Assist.Core          (PackageInfo (..), Presence (..), Ta
 import HaskellWorks.Ci.Assist.Location      ((<.>), (</>))
 import HaskellWorks.Ci.Assist.PackageConfig (templateConfig)
 import HaskellWorks.Ci.Assist.Show
-import HaskellWorks.Ci.Assist.Tar           (rewritePath, updateEntryWith)
+import HaskellWorks.Ci.Assist.Tar           (packWith)
 import Options.Applicative                  hiding (columns)
 import System.Directory                     (createDirectoryIfMissing, doesDirectoryExist)
 
@@ -70,15 +70,8 @@ runSyncToArchive opts = do
 
         when (not archiveFileExists && packageStorePathExists) $ do
           CIO.putStrLn $ "Creating " <> toText archiveFile
-          entries <- F.pack baseDir (relativePaths pInfo)
-
-          let entries' = case confPath pInfo of
-                          Tagged conf Present -> updateEntryWith (== conf) (templateConfig baseDir) <$> entries
-                          _                   -> entries
-
-          let entries'' = entries' <&> rewritePath (Text.unpack . Text.replace (packageId pInfo) (shortPackageId pInfo) . Text.pack)
-
-          IO.writeResource envAws archiveFile . F.compress . F.write $ entries''
+          entries <- packWith (templateConfig pInfo baseDir) baseDir (relativePaths pInfo)
+          IO.writeResource envAws archiveFile . F.compress . F.write $ entries
 
     Left errorMessage -> do
       CIO.hPutStrLn IO.stderr $ "ERROR: Unable to parse plan.json file: " <> Text.pack errorMessage
