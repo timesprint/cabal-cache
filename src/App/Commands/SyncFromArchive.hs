@@ -22,7 +22,7 @@ import Data.Semigroup                       ((<>))
 import HaskellWorks.Ci.Assist.Core          (PackageInfo (..), Presence (..), Tagged (..), getPackages, loadPlan)
 import HaskellWorks.Ci.Assist.Location      ((<.>), (</>))
 import HaskellWorks.Ci.Assist.PackageConfig (unTemplateConfig)
-import HaskellWorks.Ci.Assist.Tar           (mapEntriesWith, rewritePath)
+import HaskellWorks.Ci.Assist.Tar           (mapEntriesWith, rewritePath, unpackWith)
 import Network.AWS.Types                    (Region (Oregon))
 import Options.Applicative                  hiding (columns)
 import System.Directory                     (createDirectoryIfMissing, doesDirectoryExist)
@@ -82,12 +82,8 @@ runSyncFromArchive opts = do
             case maybeArchiveFileContents of
               Just archiveFileContents -> do
                 CIO.putStrLn $ "Extracting " <> toText archiveFile
-
                 let entries = F.read (F.decompress archiveFileContents)
-                                & mapEntriesNoFail (rewritePath (Text.unpack . Text.replace (shortPackageId pInfo) (packageId pInfo) . Text.pack))
-                                & mapEntriesWith (== (confPath pInfo ^. the @"value")) (unTemplateConfig baseDir)
-
-                liftIO $ F.unpack baseDir entries
+                liftIO $ unpackWith (unTemplateConfig pInfo baseDir) baseDir entries
               Nothing -> do
                 CIO.putStrLn $ "Archive unavilable: " <> toText archiveFile
 
