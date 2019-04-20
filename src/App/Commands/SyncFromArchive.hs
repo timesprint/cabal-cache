@@ -75,17 +75,18 @@ runSyncFromArchive opts = do
         let archiveFile = archiveUri </> Text.pack (packageDir pInfo) <.> ".tar.gz"
         let packageStorePath = baseDir </> packageDir pInfo
         storeDirectoryExists <- doesDirectoryExist packageStorePath
-        arhiveFileExists <- runResourceT $ IO.resourceExists env archiveFile
-        when (not storeDirectoryExists && arhiveFileExists) $ do
-          runResAws env $ do
-            maybeArchiveFileContents <- IO.readResource env archiveFile
-            case maybeArchiveFileContents of
-              Just archiveFileContents -> do
-                CIO.putStrLn $ "Extracting " <> toText archiveFile
-                let entries = F.read (F.decompress archiveFileContents)
-                liftIO $ unpackWith (unTemplateConfig pInfo baseDir) baseDir entries
-              Nothing -> do
-                CIO.putStrLn $ "Archive unavilable: " <> toText archiveFile
+        unless storeDirectoryExists $ do
+          arhiveFileExists <- runResourceT $ IO.resourceExists env archiveFile
+          when arhiveFileExists $ do
+            runResAws env $ do
+              maybeArchiveFileContents <- IO.readResource env archiveFile
+              case maybeArchiveFileContents of
+                Just archiveFileContents -> do
+                  CIO.putStrLn $ "Extracting " <> toText archiveFile
+                  let entries = F.read (F.decompress archiveFileContents)
+                  liftIO $ unpackWith (unTemplateConfig pInfo baseDir) baseDir entries
+                Nothing -> do
+                  CIO.putStrLn $ "Archive unavilable: " <> toText archiveFile
 
       CIO.putStrLn "Recaching package database"
       GhcPkg.recache storeCompilerPackageDbPath

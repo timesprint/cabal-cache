@@ -66,12 +66,13 @@ runSyncToArchive opts = do
         let archiveFile = archiveUri </> Text.pack (packageDir pInfo) <.> ".tar.gz"
         let packageStorePath = baseDir </> packageDir pInfo
         packageStorePathExists <- doesDirectoryExist packageStorePath
-        archiveFileExists <- runResourceT $ IO.resourceExists envAws archiveFile
 
-        when (not archiveFileExists && packageStorePathExists) $ do
-          CIO.putStrLn $ "Creating " <> toText archiveFile
-          entries <- packWith (templateConfig pInfo baseDir) baseDir (relativePaths pInfo)
-          IO.writeResource envAws archiveFile . F.compress . F.write $ entries
+        when packageStorePathExists $ do
+          archiveFileExists <- runResourceT $ IO.resourceExists envAws archiveFile
+          unless archiveFileExists $ do
+            CIO.putStrLn $ "Creating " <> toText archiveFile
+            entries <- packWith (templateConfig pInfo baseDir) baseDir (relativePaths pInfo)
+            IO.writeResource envAws archiveFile . F.compress . F.write $ entries
 
     Left errorMessage -> do
       CIO.hPutStrLn IO.stderr $ "ERROR: Unable to parse plan.json file: " <> Text.pack errorMessage
