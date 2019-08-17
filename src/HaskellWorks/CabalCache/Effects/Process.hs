@@ -17,7 +17,6 @@ module HaskellWorks.CabalCache.Effects.Process
   ) where
 
 import Polysemy
-import Prelude  hiding (putStr, putStrLn)
 
 import qualified System.Exit    as IO
 import qualified System.Process as IO
