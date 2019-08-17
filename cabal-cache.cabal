@@ -116,6 +116,7 @@ library
       App.Commands
       App.Commands.Options.Parser
       App.Commands.Options.Types
+      App.Commands.PolyVersion
       App.Commands.SyncFromArchive
       App.Commands.SyncToArchive
       App.Commands.Version
