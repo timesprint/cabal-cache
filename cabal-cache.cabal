@@ -129,6 +129,7 @@ library
       HaskellWorks.CabalCache.Core
       HaskellWorks.CabalCache.Error
       HaskellWorks.CabalCache.Effects.Console
+      HaskellWorks.CabalCache.Effects.Exit
       HaskellWorks.CabalCache.Effects.FileSystem
       HaskellWorks.CabalCache.Effects.Log
       HaskellWorks.CabalCache.Effects.Process
