@@ -44,6 +44,8 @@ common hw-hspec-hedgehog              { build-depends: hw-hspec-hedgehog        
 common lens                           { build-depends: lens                           >= 4.17       && < 5      }
 common mtl                            { build-depends: mtl                            >= 2.2.2      && < 2.3    }
 common optparse-applicative           { build-depends: optparse-applicative           >= 0.14       && < 0.16   }
+common polysemy                       { build-depends: polysemy                       >= 1.1.0.0    && < 2      }
+common polysemy-plugin                { build-depends: polysemy-plugin                >= 0.2.2.0    && < 1      }
 common process                        { build-depends: process                        >= 1.6.5.0    && < 1.7    }
 common raw-strings-qq                 { build-depends: raw-strings-qq                 >= 1.1        && < 2      }
 common relation                       { build-depends: relation                       >= 0.5        && < 0.6    }
@@ -86,6 +88,8 @@ library
           , lens
           , mtl
           , optparse-applicative
+          , polysemy
+          , polysemy-plugin
           , process
           , relation
           , resourcet
