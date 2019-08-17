@@ -128,6 +128,7 @@ library
       HaskellWorks.CabalCache.Concurrent.Type
       HaskellWorks.CabalCache.Core
       HaskellWorks.CabalCache.Effects.Console
+      HaskellWorks.CabalCache.Effects.FileSystem
       HaskellWorks.CabalCache.Effects.Log
       HaskellWorks.CabalCache.GhcPkg
       HaskellWorks.CabalCache.Hash
