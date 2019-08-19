@@ -11,7 +11,7 @@
 
 module HaskellWorks.CabalCache.Effects.Log
   ( Log(..)
-  , runLogConsole
+  , runEffLogConsole
   , logDebug
   , logInfo
   , logWarn
@@ -31,10 +31,10 @@ data Log m a where
 
 makeSem ''Log
 
-runLogConsole :: Member (Embed IO) r
+runEffLogConsole :: Member (Embed IO) r
   => Sem (Log ': r) a
   -> Sem r a
-runLogConsole = interpret $ \case
+runEffLogConsole = interpret $ \case
   LogDebug s -> embed $ T.putStrLn ("[Debug] " <> s)
   LogInfo  s -> embed $ T.putStrLn ("[Info] " <> s)
   LogWarn  s -> embed $ T.putStrLn ("[Warn] " <> s)

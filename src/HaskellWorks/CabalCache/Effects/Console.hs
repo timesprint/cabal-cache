@@ -11,7 +11,7 @@
 
 module HaskellWorks.CabalCache.Effects.Console
   ( Console(..)
-  , runConsole
+  , runEffConsole
   , putStr
   , putStrLn
   ) where
@@ -28,9 +28,9 @@ data Console m a where
 
 makeSem ''Console
 
-runConsole :: Member (Embed IO) r
+runEffConsole :: Member (Embed IO) r
   => Sem (Console ': r) a
   -> Sem r a
-runConsole = interpret $ \case
+runEffConsole = interpret $ \case
   PutStr    s -> embed $ T.putStr   s
   PutStrLn  s -> embed $ T.putStrLn s

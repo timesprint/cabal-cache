@@ -26,7 +26,7 @@ import qualified HaskellWorks.CabalCache.Effects.Console as E
 
 runPolyVersion :: Z.VersionOptions -> IO ()
 runPolyVersion opts = runInEffect opts
-  & E.runConsole
+  & E.runEffConsole
   & runM
 
 runInEffect :: Members '[E.Console] r
