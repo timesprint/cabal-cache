@@ -11,7 +11,7 @@
 
 module HaskellWorks.CabalCache.Effects.Exit
   ( Exit(..)
-  , runExit
+  , runEffExit
   , exitWith
   ) where
 
@@ -24,8 +24,8 @@ data Exit m a where
 
 makeSem ''Exit
 
-runExit :: Member (Embed IO) r
+runEffExit :: Member (Embed IO) r
   => Sem (Exit ': r) a
   -> Sem r a
-runExit = interpret $ \case
+runEffExit = interpret $ \case
   ExitWith    s -> embed $ IO.exitWith   s

@@ -11,7 +11,7 @@
 
 module HaskellWorks.CabalCache.Effects.Process
   ( Process(..)
-  , runProcess
+  , runEffProcess
   , spawnProcess
   , waitForProcess
   ) where
@@ -27,9 +27,9 @@ data Process m a where
 
 makeSem ''Process
 
-runProcess :: Member (Embed IO) r
+runEffProcess :: Member (Embed IO) r
   => Sem (Process ': r) a
   -> Sem r a
-runProcess = interpret $ \case
+runEffProcess = interpret $ \case
   SpawnProcess cmd args -> embed $ IO.spawnProcess cmd args
   WaitForProcess hProcess -> embed $ IO.waitForProcess hProcess
