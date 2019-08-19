@@ -11,7 +11,7 @@
 
 module HaskellWorks.CabalCache.Effects.FileSystem
   ( FileSystem(..)
-  , runFileSystem
+  , runEffFileSystem
   , readFile
   , writeFile
   ) where
@@ -27,9 +27,9 @@ data FileSystem m a where
 
 makeSem ''FileSystem
 
-runFileSystem :: Member (Embed IO) r
+runEffFileSystem :: Member (Embed IO) r
   => Sem (FileSystem ': r) a
   -> Sem r a
-runFileSystem = interpret $ \case
+runEffFileSystem = interpret $ \case
   ReadFile fp -> embed $ LBS.readFile fp
   WriteFile fp contents -> embed $ LBS.writeFile fp contents
