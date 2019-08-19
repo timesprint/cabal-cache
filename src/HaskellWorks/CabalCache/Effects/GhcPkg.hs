@@ -1,42 +1,33 @@
-{-# LANGUAGE TemplateHaskell     #-}
-
 {-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PolyKinds           #-}
-{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE StandaloneDeriving  #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
-{-# LANGUAGE UnicodeSyntax       #-}
 
 module HaskellWorks.CabalCache.Effects.GhcPkg
-  ( GhcPkg(..)
-  , runEffGhcPkg
-  , runGhcPkg
+  ( runGhcPkg
   ) where
 
-import Data.Text                               (Text)
-import HaskellWorks.CabalCache.Effects.Process
 import Polysemy
-import Prelude                                 hiding (putStr, putStrLn)
+import Polysemy.Fail
+import Prelude       hiding (putStr, putStrLn)
 
-import qualified Data.Text.IO as T
+import qualified HaskellWorks.CabalCache.Effects.Console as E
+import qualified HaskellWorks.CabalCache.Effects.Process as E
+import qualified System.Exit                             as IO
 
-data GhcPkg m a where
-  RunGhcPkg   :: Text -> GhcPkg m ()
-
-makeSem ''GhcPkg
-
-runEffGhcPkg :: Members '[Embed IO, Process] r
-  => Sem (GhcPkg ': r) a
-  -> Sem r a
-runEffGhcPkg = interpret $ \case
-  RunGhcPkg    s -> do
-    _ <- spawnProcess "ghc-pkg" []
-    embed $ (pure () :: IO ())
+runGhcPkg :: Members
+    [ E.Process
+    , E.Console
+    , Fail
+    ] r
+  => [String]
+  -> Sem r ()
+runGhcPkg args = do
+  hGhcPkg <- E.spawnProcess "ghc-pkg" args
+  exitCode <- E.waitForProcess hGhcPkg
+  case exitCode of
+    IO.ExitFailure _ -> fail "ERROR: Unable to recache package db"
+    _                -> return ()
