@@ -20,9 +20,9 @@ import Data.ByteString.Lazy.Search      (replace)
 import Data.Generics.Product.Any        (the)
 import Data.Maybe
 import Data.Semigroup                   ((<>))
-import Foreign.C.Error ( eXDEV )
+import Foreign.C.Error                  (eXDEV)
 import HaskellWorks.CabalCache.AppError
-import HaskellWorks.CabalCache.IO.Error (exceptWarn, maybeToExcept, catchErrno)
+import HaskellWorks.CabalCache.IO.Error (catchErrno, exceptWarn, maybeToExcept)
 import HaskellWorks.CabalCache.Location ((<.>), (</>))
 import HaskellWorks.CabalCache.Metadata (loadMetadata)
 import HaskellWorks.CabalCache.Show

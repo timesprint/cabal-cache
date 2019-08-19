@@ -43,6 +43,7 @@ common hw-hedgehog                    { build-depends: hw-hedgehog              
 common hw-hspec-hedgehog              { build-depends: hw-hspec-hedgehog              >= 0.1.0.4    && < 0.2    }
 common lens                           { build-depends: lens                           >= 4.17       && < 5      }
 common mtl                            { build-depends: mtl                            >= 2.2.2      && < 2.3    }
+common network-uri                    { build-depends: network-uri                    >= 2.6.1.0    && < 2.7    }
 common optparse-applicative           { build-depends: optparse-applicative           >= 0.14       && < 0.15   }
 common polysemy                       { build-depends: polysemy                       >= 1.1.0.0    && < 2      }
 common polysemy-plugin                { build-depends: polysemy-plugin                >= 0.2.2.0    && < 1      }
@@ -70,6 +71,8 @@ common config
                         -O2
                         -flate-specialise
                         -fspecialise-aggressively
+  default-extensions:   OverloadedStrings DataKinds DeriveFunctor FlexibleContexts GADTs LambdaCase PolyKinds RankNTypes ScopedTypeVariables StandaloneDeriving TypeApplications TypeOperators TypeFamilies UnicodeSyntax
+
 
 library
   import:   base, config
@@ -93,6 +96,7 @@ library
           , http-types
           , lens
           , mtl
+          , network-uri
           , optparse-applicative
           , polysemy
           , polysemy-plugin
@@ -148,6 +152,9 @@ library
       HaskellWorks.CabalCache.Topology
       HaskellWorks.CabalCache.Types
       HaskellWorks.CabalCache.Version
+
+      Control.Resource
+      Effects.Store
 
 executable cabal-cache
   import:   base, config
