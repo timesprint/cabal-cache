@@ -52,8 +52,9 @@ import qualified System.IO                                        as IO
 import qualified System.IO.Temp                                   as IO
 import qualified System.IO.Unsafe                                 as IO
 
-{-# ANN module ("HLint: ignore Reduce duplication"  :: String) #-}
-{-# ANN module ("HLint: ignore Redundant do"        :: String) #-}
+{-# ANN module ("HLint: ignore Monoid law, left identity"   :: String) #-}
+{-# ANN module ("HLint: ignore Reduce duplication"          :: String) #-}
+{-# ANN module ("HLint: ignore Redundant do"                :: String) #-}
 
 skippable :: Z.Package -> Bool
 skippable package = (package ^. the @"packageType" == "pre-existing")
