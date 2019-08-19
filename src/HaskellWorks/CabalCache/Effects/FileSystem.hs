@@ -14,16 +14,19 @@ module HaskellWorks.CabalCache.Effects.FileSystem
   , runEffFileSystem
   , readFile
   , writeFile
+  , createDirectoryIfMissing
   ) where
 
 import Polysemy
 import Prelude  hiding (readFile, writeFile)
 
 import qualified Data.ByteString.Lazy as LBS
+import qualified System.Directory     as IO
 
 data FileSystem m a where
-  ReadFile   :: FilePath -> FileSystem m LBS.ByteString
-  WriteFile  :: FilePath -> LBS.ByteString -> FileSystem m ()
+  ReadFile                  :: FilePath -> FileSystem m LBS.ByteString
+  WriteFile                 :: FilePath -> LBS.ByteString -> FileSystem m ()
+  CreateDirectoryIfMissing  :: FilePath -> FileSystem m ()
 
 makeSem ''FileSystem
 
@@ -33,3 +36,4 @@ runEffFileSystem :: Member (Embed IO) r
 runEffFileSystem = interpret $ \case
   ReadFile fp -> embed $ LBS.readFile fp
   WriteFile fp contents -> embed $ LBS.writeFile fp contents
+  CreateDirectoryIfMissing fp -> embed $ IO.createDirectoryIfMissing True fp
