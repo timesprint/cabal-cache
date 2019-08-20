@@ -137,6 +137,7 @@ library
       HaskellWorks.CabalCache.Effects.GhcPkg
       HaskellWorks.CabalCache.Effects.Log
       HaskellWorks.CabalCache.Effects.Process
+      HaskellWorks.CabalCache.Effects.Tar
       HaskellWorks.CabalCache.GhcPkg
       HaskellWorks.CabalCache.Hash
       HaskellWorks.CabalCache.IO.Console
