@@ -18,6 +18,7 @@ module HaskellWorks.CabalCache.Effects.FileSystem
   , createDirectoryIfMissing
   , doesDirectoryExist
   , createSystemTempDirectory
+  , removeDirectoryRecursive
   ) where
 
 import Polysemy
@@ -32,7 +33,8 @@ data FileSystem m a where
   WriteFile                 :: FilePath -> LBS.ByteString -> FileSystem m ()
   CreateDirectoryIfMissing  :: FilePath -> FileSystem m ()
   DoesDirectoryExist        :: FilePath -> FileSystem m Bool
-  CreateSystemTempDirectory   :: FilePath -> FileSystem m FilePath
+  CreateSystemTempDirectory :: FilePath -> FileSystem m FilePath
+  RemoveDirectoryRecursive  :: FilePath -> FileSystem m ()
 
 makeSem ''FileSystem
 
@@ -47,3 +49,4 @@ runEffFileSystem = interpret $ \case
   CreateSystemTempDirectory fp -> do
     pp <- embed IO.getCanonicalTemporaryDirectory
     embed $ IO.createTempDirectory pp fp
+  RemoveDirectoryRecursive fp -> embed $ IO.removeDirectoryRecursive fp
