@@ -19,10 +19,13 @@ module HaskellWorks.CabalCache.Effects.FileSystem
   , doesDirectoryExist
   , createSystemTempDirectory
   , removeDirectoryRecursive
+
+  , withSystemTempDirectory
   ) where
 
 import Polysemy
-import Prelude  hiding (readFile, writeFile)
+import Polysemy.Resource (Resource, bracket)
+import Prelude           hiding (readFile, writeFile)
 
 import qualified Data.ByteString.Lazy as LBS
 import qualified System.Directory     as IO
@@ -50,3 +53,9 @@ runEffFileSystem = interpret $ \case
     pp <- embed IO.getCanonicalTemporaryDirectory
     embed $ IO.createTempDirectory pp fp
   RemoveDirectoryRecursive fp -> embed $ IO.removeDirectoryRecursive fp
+
+withSystemTempDirectory :: Members '[FileSystem, Resource] r
+  => FilePath
+  -> (FilePath -> Sem r a)
+  -> Sem r a
+withSystemTempDirectory fp = bracket (createSystemTempDirectory fp) removeDirectoryRecursive
