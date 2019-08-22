@@ -130,7 +130,6 @@ library
       HaskellWorks.CabalCache.Concurrent.Fork
       HaskellWorks.CabalCache.Concurrent.Type
       HaskellWorks.CabalCache.Core
-      HaskellWorks.CabalCache.Error
       HaskellWorks.CabalCache.Effects.Console
       HaskellWorks.CabalCache.Effects.Exit
       HaskellWorks.CabalCache.Effects.FileSystem
@@ -139,6 +138,7 @@ library
       HaskellWorks.CabalCache.Effects.Process
       HaskellWorks.CabalCache.Effects.Store
       HaskellWorks.CabalCache.Effects.Tar
+      HaskellWorks.CabalCache.Error
       HaskellWorks.CabalCache.GhcPkg
       HaskellWorks.CabalCache.Hash
       HaskellWorks.CabalCache.IO.Console

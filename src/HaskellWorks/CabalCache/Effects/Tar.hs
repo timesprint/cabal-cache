@@ -13,16 +13,26 @@ module HaskellWorks.CabalCache.Effects.Tar
   ( extractTar
   ) where
 
-import HaskellWorks.CabalCache.AppError
+import HaskellWorks.CabalCache.Error
 import HaskellWorks.CabalCache.Show
 import Polysemy
 import Polysemy.Error
-import Prelude                          hiding (init)
+import Prelude                       hiding (init)
 
 import qualified HaskellWorks.CabalCache.Effects.Process as E
 import qualified System.Exit                             as IO
 
-extractTar :: Members [E.Process, Error AppError] r
+newtype TarError = TarExtractError Int
+  deriving (Eq, Show)
+
+instance ErrorMessage TarError where
+  errorMessage (TarExtractError exitFailureCode) = "Failed to extract tar.  Exit code: " <> tshow exitFailureCode
+
+extractTar ::
+    Members
+      [ E.Process
+      , Error TarError
+      ] r
   => FilePath
   -> FilePath
   -> Sem r ()
@@ -31,4 +41,4 @@ extractTar tarFile targetPath = do
   exitCode <- E.waitForProcess process
   case exitCode of
     IO.ExitSuccess   -> return ()
-    IO.ExitFailure n -> throw $ GenericAppError $ "Failed to extract tar.  Exit code: " <> tshow n
+    IO.ExitFailure n -> throw (TarExtractError n)
