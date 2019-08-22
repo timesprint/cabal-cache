@@ -1,10 +1,17 @@
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE PolyKinds           #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
+
 module Control.Resource
-( ReleaseToken
-, emptyReleaseToken
-, unpackResourceT
-, release
-)
-where
+  ( ReleaseToken
+  , emptyReleaseToken
+  , unpackResourceT
+  , release
+  ) where
 
 import Control.Monad.IO.Class                (MonadIO, liftIO)
 import Control.Monad.Trans.Resource          (ResourceT, createInternalState, getInternalState, runInternalState, unprotect)

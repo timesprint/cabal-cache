@@ -71,7 +71,6 @@ common config
                         -O2
                         -flate-specialise
                         -fspecialise-aggressively
-  default-extensions:   OverloadedStrings DataKinds DeriveFunctor FlexibleContexts GADTs LambdaCase PolyKinds RankNTypes ScopedTypeVariables StandaloneDeriving TypeApplications TypeOperators TypeFamilies UnicodeSyntax
 
 
 library
@@ -138,6 +137,7 @@ library
       HaskellWorks.CabalCache.Effects.GhcPkg
       HaskellWorks.CabalCache.Effects.Log
       HaskellWorks.CabalCache.Effects.Process
+      HaskellWorks.CabalCache.Effects.Store
       HaskellWorks.CabalCache.Effects.Tar
       HaskellWorks.CabalCache.GhcPkg
       HaskellWorks.CabalCache.Hash
@@ -156,7 +156,6 @@ library
       HaskellWorks.CabalCache.Version
 
       Control.Resource
-      Effects.Store
 
 executable cabal-cache
   import:   base, config
