@@ -61,7 +61,7 @@ import qualified System.IO.Unsafe                                 as IO
 {-# ANN module ("HLint: ignore Redundant do"                :: String) #-}
 
 skippable :: Z.Package -> Bool
-skippable package = (package ^. the @"packageType" == "pre-existing")
+skippable package = package ^. the @"packageType" == "pre-existing"
 
 runSyncFromArchive :: Z.SyncFromArchiveOptions -> IO ()
 runSyncFromArchive opts = do
