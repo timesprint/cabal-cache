@@ -1,11 +1,8 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PolyKinds           #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeOperators       #-}
 
 module HaskellWorks.CabalCache.Effects.Stm
@@ -25,5 +22,4 @@ asyncAwait :: Members '[Embed IO, Async] r
   => Int -> Sem r a -> Sem r [Maybe a]
 asyncAwait n f = do
   bs <- forM [1..n] . const $ async f
-  rs <- forM bs await
-  return rs
+  forM bs await
