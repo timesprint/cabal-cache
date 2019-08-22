@@ -18,7 +18,7 @@
 
 module HaskellWorks.CabalCache.Effects.Aws
   ( awsMkEnv
-  , runEffAws
+  , runEffMkAwsEnv
   , awsLogger
   ) where
 
@@ -36,16 +36,16 @@ import qualified Data.Text.Encoding                  as T
 import qualified HaskellWorks.CabalCache.Effects.Log as E
 import qualified Network.AWS.Types                   as AWS
 
-data Aws m a where
-  AwsMkEnv :: Region -> (LogLevel -> LBS.ByteString -> m ()) -> Aws m IO.Env
+data MkAwsEnv m a where
+  AwsMkEnv :: Region -> (LogLevel -> LBS.ByteString -> m ()) -> MkAwsEnv m IO.Env
 
-makeSem ''Aws
+makeSem ''MkAwsEnv
 
-runEffAws
+runEffMkAwsEnv
   :: Member (Final IO) r
-  => Sem (Aws ': r) a
+  => Sem (MkAwsEnv ': r) a
   -> Sem r a
-runEffAws = interpretFinal $ \case
+runEffMkAwsEnv = interpretFinal $ \case
   AwsMkEnv region cb -> do
     cb' <- bindS (uncurry cb)
     s   <- getInitialStateS
@@ -69,4 +69,3 @@ fromAwsLogLevel awsLogLevel = case awsLogLevel of
   AWS.Error -> E.LevelError
   AWS.Debug -> E.LevelDebug
   AWS.Trace -> E.LevelDebug
-

@@ -1,6 +1,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RankNTypes     #-}
+{-# LANGUAGE RankNTypes           #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -35,7 +35,6 @@ runInEffect _ = do
   let V.Version {..} = P.version
   let version = intercalate "." $ fmap show versionBranch
   E.putStr $ "cabal-cache " <> T.pack version
-
 
 cmdPolyVersion :: Mod CommandFields (IO ())
 cmdPolyVersion = command "poly-version"  $ flip info idm $ runPolyVersion <$> optsVersion
