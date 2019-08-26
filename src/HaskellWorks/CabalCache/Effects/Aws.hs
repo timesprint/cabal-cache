@@ -19,14 +19,20 @@
 module HaskellWorks.CabalCache.Effects.Aws
   ( awsMkEnv
   , runEffAws
+  , awsLogger
   ) where
 
+import Antiope.Env                  (LogLevel (..), Region)
+import Control.Concurrent           (myThreadId)
 import Control.Monad
-import Network.AWS.Types (LogLevel, Region)
+import HaskellWorks.CabalCache.Show
 import Polysemy
 
-import qualified Antiope.Env          as IO
-import qualified Data.ByteString.Lazy as LBS
+import qualified Antiope.Env                             as IO
+import qualified Data.ByteString.Lazy                    as LBS
+import qualified Data.ByteString.Lazy.Char8              as LC8
+import qualified Data.Text.Encoding                      as T
+import qualified HaskellWorks.CabalCache.Effects.Console as E
 
 data Aws m a where
   AwsMkEnv :: Region -> (LogLevel -> LBS.ByteString -> m ()) -> Aws m IO.Env
@@ -45,3 +51,14 @@ runEffAws lower = interpretH $ \case
     env <- embed $ IO.mkEnv region . curry $ \bs ->
       void $ lower .@ runEffAws $ cb' (bs <$ is)
     pure (env <$ is)
+
+awsLogger
+  :: Members '[E.Console, Embed IO] r
+  => Maybe LogLevel -> LogLevel -> LC8.ByteString
+  -> Sem r ()
+awsLogger maybeConfigLogLevel msgLogLevel message =
+  forM_ maybeConfigLogLevel $ \configLogLevel ->
+    when (msgLogLevel <= configLogLevel) $ do
+      threadId <- embed myThreadId
+      E.errPutStrLn $ "[" <> tshow msgLogLevel <> "] [tid: " <> tshow threadId <> "]"  <> text
+  where text = T.decodeUtf8 $ LBS.toStrict message
