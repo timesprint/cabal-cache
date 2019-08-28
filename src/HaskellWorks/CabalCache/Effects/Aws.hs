@@ -27,6 +27,7 @@ import Control.Concurrent           (myThreadId)
 import Control.Monad
 import HaskellWorks.CabalCache.Show
 import Polysemy
+import Polysemy.Final
 
 import qualified Antiope.Env                         as IO
 import qualified Data.ByteString.Lazy                as LBS
@@ -41,17 +42,14 @@ data Aws m a where
 makeSem ''Aws
 
 runEffAws
-    :: Member (Embed IO) r
-    => (forall x. Sem r x -> IO x)
-    -> Sem (Aws ': r) a
-    -> Sem r a
-runEffAws lower = interpretH $ \case
+  :: Member (Final IO) r
+  => Sem (Aws ': r) a
+  -> Sem r a
+runEffAws = interpretFinal $ \case
   AwsMkEnv region cb -> do
-    cb' <- bindT (uncurry cb)
-    is  <- getInitialStateT
-    env <- embed $ IO.mkEnv region . curry $ \bs ->
-      void $ lower .@ runEffAws $ cb' (bs <$ is)
-    pure (env <$ is)
+    cb' <- bindS (uncurry cb)
+    s   <- getInitialStateS
+    liftS $ IO.mkEnv region $ \loglvl str -> void $ cb' ((loglvl, str) <$ s)
 
 awsLogger
   :: Members '[E.Log, Embed IO] r
@@ -71,3 +69,4 @@ fromAwsLogLevel awsLogLevel = case awsLogLevel of
   AWS.Error -> E.LevelError
   AWS.Debug -> E.LevelDebug
   AWS.Trace -> E.LevelDebug
+
