@@ -28,11 +28,12 @@ import Control.Monad
 import HaskellWorks.CabalCache.Show
 import Polysemy
 
-import qualified Antiope.Env                             as IO
-import qualified Data.ByteString.Lazy                    as LBS
-import qualified Data.ByteString.Lazy.Char8              as LC8
-import qualified Data.Text.Encoding                      as T
-import qualified HaskellWorks.CabalCache.Effects.Console as E
+import qualified Antiope.Env                         as IO
+import qualified Data.ByteString.Lazy                as LBS
+import qualified Data.ByteString.Lazy.Char8          as LC8
+import qualified Data.Text.Encoding                  as T
+import qualified HaskellWorks.CabalCache.Effects.Log as E
+import qualified Network.AWS.Types                   as AWS
 
 data Aws m a where
   AwsMkEnv :: Region -> (LogLevel -> LBS.ByteString -> m ()) -> Aws m IO.Env
@@ -53,12 +54,20 @@ runEffAws lower = interpretH $ \case
     pure (env <$ is)
 
 awsLogger
-  :: Members '[E.Console, Embed IO] r
-  => Maybe LogLevel -> LogLevel -> LC8.ByteString
+  :: Members '[E.Log, Embed IO] r
+  => Maybe AWS.LogLevel -> AWS.LogLevel -> LC8.ByteString
   -> Sem r ()
 awsLogger maybeConfigLogLevel msgLogLevel message =
   forM_ maybeConfigLogLevel $ \configLogLevel ->
     when (msgLogLevel <= configLogLevel) $ do
       threadId <- embed myThreadId
-      E.errPutStrLn $ "[" <> tshow msgLogLevel <> "] [tid: " <> tshow threadId <> "]"  <> text
+      E.logAt (fromAwsLogLevel msgLogLevel) $
+        "[" <> tshow msgLogLevel <> "] [tid: " <> tshow threadId <> "]"  <> text
   where text = T.decodeUtf8 $ LBS.toStrict message
+
+fromAwsLogLevel :: AWS.LogLevel -> E.LogLevel
+fromAwsLogLevel awsLogLevel = case awsLogLevel of
+  AWS.Info  -> E.LevelInfo
+  AWS.Error -> E.LevelError
+  AWS.Debug -> E.LevelDebug
+  AWS.Trace -> E.LevelDebug
