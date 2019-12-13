@@ -135,6 +135,7 @@ library
       HaskellWorks.CabalCache.Core
       HaskellWorks.CabalCache.Effects.Aws
       HaskellWorks.CabalCache.Effects.Console
+      HaskellWorks.CabalCache.Effects.Core
       HaskellWorks.CabalCache.Effects.Exit
       HaskellWorks.CabalCache.Effects.FileSystem
       HaskellWorks.CabalCache.Effects.GhcPkg
