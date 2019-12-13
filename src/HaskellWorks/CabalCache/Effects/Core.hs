@@ -11,18 +11,16 @@
 {-# LANGUAGE UnicodeSyntax       #-}
 
 module HaskellWorks.CabalCache.Effects.Core
-  (-- mkCompilerContext
+  ( mkCompilerContext
   ) where
 
 import Control.Monad.Except
 import Data.Text            (Text)
 import Polysemy
 import Polysemy.Error
-import Polysemy.Fail
 
 import qualified HaskellWorks.CabalCache.Core  as C
 import qualified HaskellWorks.CabalCache.Types as Z
-import qualified Polysemy.Error                as E
 
 mkCompilerContext :: Members [Embed IO, Error Text] r
   => Z.PlanJson
