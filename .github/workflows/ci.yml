@@ -62,6 +62,10 @@ jobs:
           cabal build -O2 --write-ghc-environment-files=ghc8.4.4+ $LINUX_CABAL_ARGS || \
           cabal build -O2 --write-ghc-environment-files=ghc8.4.4+ $LINUX_CABAL_ARGS -j1
 
+      - name: Trigger possible releases
+        run: |
+          echo 1
+
       - name: Compress Binary
         id: compress_binary
         env:
