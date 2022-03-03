@@ -331,3 +331,4 @@ jobs:
           asset_path: artifacts/cabal-cache-${{ steps.axes.outputs.arch_os }}.zip
           asset_name: cabal-cache-${{ steps.axes.outputs.arch_os }}.zip
           asset_content_type: application/zip
+
